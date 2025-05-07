@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let labId = null;
     let requestType = null;
     let allowedDays = [];
+    let maxSlots;
 
     if (!submissionId) {
         Swal.fire({

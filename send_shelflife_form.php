@@ -41,9 +41,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["formFile"])) {
         exit();
     }
 
+    // Get the current date and time
+    $currentDate = date('Y-m-d H:i:s');
+
     // Insert into database
-    $sql = "INSERT INTO submissions (submission_id, unique_id, full_name, contact_number, email_address, analysis, category, lab_id, status, quantity) 
-            VALUES ('$submissionId', '$uniqueId', '$fullName', '$contact', '$email', 'Shelf Life Evaluation', 'Food', 4, 1, 1)";
+    $sql = "INSERT INTO submissions (submission_id, unique_id, full_name, contact_number, email_address, analysis, category, lab_id, status, quantity, submission_date) 
+            VALUES ('$submissionId', '$uniqueId', '$fullName', '$contact', '$email', 'Shelf Life Evaluation', 'Food', 4, 1, 1, '$currentDate')";
 
     if ($conn->query($sql) === TRUE) {
         // Redirect to appointment selection

@@ -37,9 +37,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["proofFile"])) {
         $result = $conn->query($checkQuery);
     } while ($result->num_rows > 0);
 
+    $currentDate = date('Y-m-d H:i:s');
+
     // Insert into database
-    $sql = "INSERT INTO submissions (submission_id, unique_id, full_name, contact_number, email_address, analysis, category, lab_id, status) 
-            VALUES ('$submissionId', '$uniqueId', '$fullName', '$contact', '$email', 'Sensory Evaluation', 'Food', 4, 1)";
+    $sql = "INSERT INTO submissions (submission_id, unique_id, full_name, contact_number, email_address, analysis, category, lab_id, quantity, status, submission_date) 
+            VALUES ('$submissionId', '$uniqueId', '$fullName', '$contact', '$email', 'Sensory Evaluation', 'Food', 4, 1, 1, '$currentDate')";
 
     if ($conn->query($sql) === TRUE) {
         // Redirect to appointment selection
