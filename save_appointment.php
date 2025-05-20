@@ -23,7 +23,7 @@ if (!isset($_POST['submission_id']) || !isset($_POST['selected_date'])) {
 $submissionId = $conn->real_escape_string($_POST['submission_id']);
 $selectedDate = $conn->real_escape_string($_POST['selected_date']);
 
-// Fetch submission details including email_address
+// Fetch submission details including email_address and file
 $sql = "SELECT * FROM submissions WHERE submission_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $submissionId);
@@ -80,6 +80,20 @@ if ($stmt->execute()) {
         $mail->setFrom('cedrickcap7@gmail.com', 'RSTL Sample Submission');
         $mail->addAddress('cedrickcap7@gmail.com', 'Admin'); // Admin Email
         $mail->Subject = "New Reservation - " . $row['unique_id'];
+
+        // Add PDF attachment for lab_id 4 if file exists (only for admin email)
+        if ($row['lab_id'] == 4 && !empty($row['file'])) {
+            $filePath = $row['file'];
+            if (file_exists($filePath)) {
+                try {
+                    $mail->addAttachment($filePath, basename($filePath));
+                } catch (Exception $e) {
+                    // Log the error but continue with email sending
+                    error_log("Failed to attach file: " . $e->getMessage());
+                }
+            }
+        }
+
         $mail->Body = "
         <html>
         <body>
@@ -98,10 +112,17 @@ if ($stmt->execute()) {
         </body>
         </html>";
         $mail->isHTML(true);
-        $mail->send();
+        
+        try {
+            $mail->send();
+        } catch (Exception $e) {
+            error_log("Failed to send admin email: " . $e->getMessage());
+            // Continue with client email even if admin email fails
+        }
 
         // ✅ Email to Client
         $mail->clearAddresses();
+        $mail->clearAttachments(); // Clear any attachments before sending to client
         $mail->addAddress($row['email_address'], $row['full_name']); // Send to client
         $mail->Subject = "Reservation Confirmation (Pending Approval) - " . $row['unique_id'];
         $mail->Body = "
@@ -149,9 +170,14 @@ if ($stmt->execute()) {
             <p style='font-size: 14px; color: #34495e; font-family: Arial, sans-serif;'>Once on the portal, please enter your transaction number: <strong style='color: #2c3e50;'>{$row['unique_id']}</strong> to view the details.</p>
         </body>
         </html>";
-        $mail->send();
-
-        echo json_encode(["status" => "success", "message" => "Reservation confirmed and email sent!", "redirect_url" => "reservation_details.php?unique_id={$row['unique_id']}"]);
+        
+        try {
+            $mail->send();
+            echo json_encode(["status" => "success", "message" => "Reservation confirmed and email sent!", "redirect_url" => "reservation_details.php?unique_id={$row['unique_id']}"]);
+        } catch (Exception $e) {
+            error_log("Failed to send client email: " . $e->getMessage());
+            echo json_encode(["status" => "error", "message" => "Email sending failed: " . $mail->ErrorInfo]);
+        }
     } catch (Exception $e) {
         echo json_encode(["status" => "error", "message" => "Email sending failed: " . $mail->ErrorInfo]);
     }

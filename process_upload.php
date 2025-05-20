@@ -25,9 +25,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["proofFile"])) {
         exit();
     }
 
-    // Generate a unique submission_id
-    $submissionId = strval(time()) . rand(1000, 9999);
-    
+    // Create uploads directory if it doesn't exist
+    $uploadDir = 'uploads/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
     // Generate a unique transaction number (e.g., SSE-10000)
     $uniqueIdPrefix = "SSE-";
     do {
@@ -37,18 +40,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["proofFile"])) {
         $result = $conn->query($checkQuery);
     } while ($result->num_rows > 0);
 
-    $currentDate = date('Y-m-d H:i:s');
+    // Set analysis type and filename based on form type
+    $analysisType = "Shelf Life Evaluation";
+    $fileName = "Shelflife_Evaluation" . $uniqueId . ".pdf";
+    
+    // If this is a microbiological analysis submission
+    if (isset($_POST['form_type']) && $_POST['form_type'] === 'micro') {
+        $analysisType = "Sensory Evaluation";
+        $fileName = "proof_of_microbiological_analysis" . $uniqueId . ".pdf";
+    }
 
-    // Insert into database
-    $sql = "INSERT INTO submissions (submission_id, unique_id, full_name, contact_number, email_address, analysis, category, lab_id, quantity, status, submission_date) 
-            VALUES ('$submissionId', '$uniqueId', '$fullName', '$contact', '$email', 'Sensory Evaluation', 'Food', 4, 1, 1, '$currentDate')";
+    $targetPath = $uploadDir . $fileName;
 
-    if ($conn->query($sql) === TRUE) {
-        // Redirect to appointment selection
-        header("Location: appointment.php?submission_id=$submissionId");
-        exit();
+    // Move uploaded file to uploads directory
+    if (move_uploaded_file($file["tmp_name"], $targetPath)) {
+        // Generate a unique submission_id
+        $submissionId = strval(time()) . rand(1000, 9999);
+        $currentDate = date('Y-m-d H:i:s');
+
+        // Insert into database with file path
+        $sql = "INSERT INTO submissions (submission_id, unique_id, full_name, contact_number, email_address, analysis, category, lab_id, quantity, status, submission_date, file) 
+                VALUES (?, ?, ?, ?, ?, ?, 'Food', 4, 1, 1, ?, ?)";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssssss", $submissionId, $uniqueId, $fullName, $contact, $email, $analysisType, $currentDate, $targetPath);
+
+        if ($stmt->execute()) {
+            // Redirect to appointment selection
+            header("Location: appointment.php?submission_id=$submissionId");
+            exit();
+        } else {
+            // If database insert fails, delete the uploaded file
+            unlink($targetPath);
+            echo "<script>alert('Error saving data: " . $stmt->error . "'); window.history.back();</script>";
+        }
     } else {
-        echo "<script>alert('Error saving data: " . $conn->error . "'); window.history.back();</script>";
+        echo "<script>alert('Error uploading file!'); window.history.back();</script>";
     }
 } else {
     echo "<script>alert('No file uploaded!'); window.history.back();</script>";

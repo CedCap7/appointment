@@ -16,10 +16,10 @@
                     <hr>
 
                     <!-- 📤 File Upload & Email Form -->
-                    <form id="uploadForm" action="send_shelflife_form.php" method="POST" enctype="multipart/form-data">
+                    <form id="uploadForm" action="process_upload.php" method="POST" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="formFile">Upload Completed Form (PDF only)</label>
-                            <input type="file" name="formFile" id="formFile" class="form-control" accept=".pdf" required onchange="previewPDF(event)">
+                            <input type="file" name="proofFile" id="formFile" class="form-control" accept=".pdf" required onchange="previewPDF(event)">
                         </div>
 
                         <!-- 🖼 PDF Preview -->

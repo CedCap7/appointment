@@ -8,7 +8,8 @@
                     <h1>Upload Proof of Microbiological Analysis</h1>
                 </div>
                 <div class="card-body text-center">
-                    <form action="process_upload.php" method="POST" enctype="multipart/form-data">
+                    <form id="uploadForm" action="process_upload.php" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="form_type" value="micro">
                         <div class="form-group">
                             <label for="full_name">Full Name</label>
                             <input type="text" name="full_name" id="full_name" class="form-control" required>

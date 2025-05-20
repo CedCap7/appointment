@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     maxSlots = 10;
                 } else if (labId == 4) {
                     allowedDays = [1, 2, 3, 4, 5]; // Mon-Fri
-                    maxSlots = 9999; // No limit
+                    maxSlots = 2; // 2 slots only
                 }
 
                 console.log("Allowed Days:", allowedDays);
@@ -306,10 +306,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return new Promise((resolve) => {
                                     Swal.showLoading();
 
+                                    // Make the AJAX request
                                     $.ajax({
                                         url: 'save_appointment.php',
                                         type: 'POST',
-                                        data: { submission_id: submissionId, selected_date: info.dateStr },
+                                        data: {
+                                            submission_id: submissionId,
+                                            selected_date: info.dateStr
+                                        },
                                         dataType: 'json',
                                         success: function (response) {
                                             resolve(response);

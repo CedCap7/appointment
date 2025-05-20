@@ -49,7 +49,7 @@ if ($submissionId) {
             $maxSlots = 8; // ✅ Default for In-House (if category unknown)
         }
     } elseif ($labId == 4) {
-        $maxSlots = 5; // ✅ Fixed 5 slots for Lab 4
+        $maxSlots = 2; // ✅ Fixed 5 slots for Lab 4
     } else {
         $maxSlots = 10; // ✅ Default for other labs
     }
