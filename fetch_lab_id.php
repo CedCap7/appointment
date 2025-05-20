@@ -19,7 +19,7 @@ if (!isset($_GET['submission_id'])) {
 $submissionId = $conn->real_escape_string($_GET['submission_id']);
 
 // Fetch lab_id and requestType from database
-$sql = "SELECT lab_id, request_type FROM submissions WHERE submission_id = ?";
+$sql = "SELECT lab_id, request_type, category FROM submissions WHERE submission_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $submissionId);
 $stmt->execute();
@@ -27,7 +27,7 @@ $result = $stmt->get_result();
 $data = $result->fetch_assoc();
 
 if ($data) {
-    echo json_encode(["status" => "success", "lab_id" => $data['lab_id'], "request_type" => $data['request_type']]);
+    echo json_encode(["status" => "success", "lab_id" => $data['lab_id'], "request_type" => $data['request_type'], "category" => $data['category']]);
 } else {
     echo json_encode(["status" => "error", "message" => "No data found"]);
 }

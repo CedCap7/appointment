@@ -37,24 +37,39 @@ if ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Define Max Slots Per Day
-$maxSlots = 10;
-
 // Check total booked slots for this date and lab_id
-$stmt = $conn->prepare("SELECT SUM(quantity) AS totalBooked FROM submissions WHERE submission_date_selected = ? AND lab_id = ?");
+$stmt = $conn->prepare("SELECT COUNT(*) as totalBooked FROM submissions WHERE submission_date_selected = ? AND lab_id = ?");
 $stmt->bind_param("si", $selectedDate, $labId);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 $totalBooked = $row['totalBooked'] ?? 0;
+
+// Get max slots based on lab_id and request type
+$maxSlots = 10; // Default
+if ($labId == 1) {
+    // Get request type for this submission
+    $stmt = $conn->prepare("SELECT request_type FROM submissions WHERE submission_id = ?");
+    $stmt->bind_param("s", $submissionId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $requestType = $row['request_type'];
+        $maxSlots = ($requestType === "In-House") ? 6 : 1;
+    }
+} elseif ($labId == 4) {
+    $maxSlots = 2;
+}
+
 $remainingSlots = $maxSlots - $totalBooked;
-$stmt->close();
 
 // Check if the requested quantity exceeds available slots
-if ($submissionQuantity > $remainingSlots) {
+if ($remainingSlots <= 0) {
+    echo json_encode(["bookable" => false, "message" => "This date is fully booked."]);
+} elseif ($submissionQuantity > $remainingSlots) {
     echo json_encode(["bookable" => false, "message" => "Not enough slots available."]);
 } else {
-    echo json_encode(["bookable" => true, "message" => "Date is available for booking."]);
+    echo json_encode(["bookable" => true, "message" => "Date is available."]);
 }
 
 $conn->close();

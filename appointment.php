@@ -178,19 +178,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (labId == 1) { 
                     if (requestType.trim() === "In-House") {
                         allowedDays = [6]; // Saturdays only
-                        maxSlots = (category == "1") ? 5 : (category == "2") ? 3 : 8; 
+                        maxSlots = 6; // In-House: 6 slots max
                     } else if (requestType.trim() === "On-Site") {
-                        allowedDays = [4, 5]; // Thursdays & Fridays
-                        maxSlots = 10;
+                        allowedDays = [3, 4, 5]; // Wednesday, Thursday, Friday
+                        maxSlots = 1; // On-Site: 1 slot max
                     }
                 } else if (labId == 2) {
-                    allowedDays = [1, 2, 3]; // Mon-Wed
+                    // Set allowed days based on category for lab_id 2
+                    const categoryLower = (category || '').toLowerCase();
+                    if (categoryLower.includes('food') || categoryLower.includes('feeds')) {
+                        allowedDays = [1, 2]; // Monday and Tuesday
+                    } else if (categoryLower.includes('water')) {
+                        allowedDays = [2, 3]; // Tuesday and Wednesday
+                    } else {
+                        allowedDays = [1, 2, 3]; // Monday, Tuesday, and Wednesday (default)
+                    }
                     maxSlots = 10;
                 } else if (labId == 3) {
-                    allowedDays = [1, 2]; // Mon-Tue
+                    // Set allowed days based on category for lab_id 3
+                    const categoryLower = (category || '').toLowerCase();
+                    if (categoryLower.includes('food')) {
+                        allowedDays = [1]; // Monday only
+                    } else if (categoryLower.includes('swab')) {
+                        allowedDays = [1, 2]; // Monday and Tuesday
+                    } else if (categoryLower.includes('water')) {
+                        allowedDays = [2, 3]; // Tuesday and Wednesday
+                    } else {
+                        allowedDays = [1, 2]; // Default: Monday and Tuesday
+                    }
                     maxSlots = 10;
                 } else if (labId == 4) {
-                    allowedDays = [1, 2, 3, 4, 5]; // Mon-Fri
+                    allowedDays = [1, 2]; // Mon-Tue
                     maxSlots = 2; // 2 slots only
                 }
 
